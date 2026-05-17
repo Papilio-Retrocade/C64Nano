@@ -88,6 +88,7 @@ signal audio_r       : std_logic_vector(17 downto 0);
 -- external memory
 signal c64_addr     : unsigned(15 downto 0);
 signal c64_data_out : unsigned(7 downto 0);
+signal c64_data_in  : unsigned(7 downto 0);
 signal sdram_data   : unsigned(7 downto 0);
 signal dout         : std_logic_vector(7 downto 0);
 signal idle         : std_logic;
@@ -220,6 +221,7 @@ signal system_floppy_wprot : std_logic_vector(1 downto 0);
 signal leds           : std_logic_vector(5 downto 0);
 signal led1541        : std_logic;
 signal reu_cfg        : std_logic; 
+signal reu_wrap       : std_logic;
 signal dma_req        : std_logic;
 signal dma_cycle      : std_logic;
 signal dma_addr       : std_logic_vector(15 downto 0);
@@ -313,13 +315,15 @@ signal audio_div       : unsigned(8 downto 0);
 signal ioctl_download  : std_logic := '0';
 signal ioctl_load_addr : std_logic_vector(22 downto 0);
 signal ioctl_req_wr    : std_logic := '0';
-signal cart_id         : std_logic_vector(15 downto 0);
-signal cart_bank_laddr : std_logic_vector(15 downto 0);
-signal cart_bank_size  : std_logic_vector(15 downto 0);
-signal cart_bank_num   : std_logic_vector(15 downto 0);
-signal cart_bank_type  : std_logic_vector(7 downto 0);
-signal cart_exrom      : std_logic_vector(7 downto 0);
-signal cart_game       : std_logic_vector(7 downto 0);
+signal cart_id         : std_logic_vector(7 downto 0);
+signal cart_id_hi      : std_logic_vector(7 downto 0);
+signal cart_bank_num   : std_logic_vector(7 downto 0);
+signal cart_bank_hi    : std_logic;
+signal cart_bank_16k   : std_logic;
+signal cart_exrom      : std_logic;
+signal cart_game       : std_logic;
+signal cart_mem_req    : std_logic;
+signal cart_wrdata     : std_logic_vector(7 downto 0);
 signal cart_attached   : std_logic := '0';
 signal cart_hdr_cnt    : std_logic_vector(3 downto 0);
 signal cart_hdr_wr     : std_logic;
@@ -335,7 +339,7 @@ signal io_cycleD       : std_logic;
 signal ioctl_wr        : std_logic;
 signal ioctl_data      : std_logic_vector(7 downto 0);
 signal ioctl_addr      : std_logic_vector(22 downto 0);
-signal cid             : std_logic_vector(15 downto 0);
+signal cid             : std_logic_vector(7 downto 0);
 -- crt loader
 signal erase_to        : std_logic_vector(4 downto 0);
 signal erase_cram      : std_logic := '0';
@@ -359,6 +363,7 @@ signal c64rom_wr       : std_logic;
 signal img_select      : std_logic_vector(2 downto 0);
 signal tap_version     : std_logic_vector(1 downto 0);
 signal vic_variant     : std_logic_vector(1 downto 0);
+signal palette         : unsigned(2 downto 0);
 signal cia_mode        : std_logic;
 signal loader_busy     : std_logic;
 -- tape
@@ -746,10 +751,22 @@ port map(
       tmds_d_p   => tmds_d_p
       );
 
-addr <= io_cycle_addr when io_cycle ='1' else reu_ram_addr(22 downto 0) when ext_cycle = '1' else cart_addr;
-cs <= io_cycle_ce when io_cycle ='1' else reu_ram_ce when ext_cycle = '1' else cart_ce; 
-we <= io_cycle_we when io_cycle ='1' else reu_ram_we  when ext_cycle = '1' else cart_we;
-din <= std_logic_vector(io_cycle_data) when io_cycle ='1' else std_logic_vector(reu_ram_dout) when ext_cycle = '1' else std_logic_vector(c64_data_out);
+addr <= cart_addr when io_cycle = '1' and cart_mem_req = '1' else
+        io_cycle_addr when io_cycle = '1' else
+        reu_ram_addr(22 downto 0) when ext_cycle = '1' else
+        cart_addr;
+cs <= cart_ce when io_cycle = '1' and cart_mem_req = '1' else
+      io_cycle_ce when io_cycle = '1' else
+      reu_ram_ce when ext_cycle = '1' else
+      cart_ce;
+we <= cart_we when io_cycle = '1' and cart_mem_req = '1' else
+      io_cycle_we when io_cycle = '1' else
+      reu_ram_we when ext_cycle = '1' else
+      cart_we;
+din <= std_logic_vector(cart_wrdata) when io_cycle = '1' and cart_mem_req = '1' else
+       std_logic_vector(io_cycle_data) when io_cycle = '1' else
+       std_logic_vector(reu_ram_dout) when ext_cycle = '1' else
+       std_logic_vector(cart_wrdata);
 sdram_data <= unsigned(dout);
 
 dram_inst: entity work.sdram
@@ -1181,6 +1198,7 @@ hid_inst: entity work.hid
 
   -- values that can be configured by the user
   system_reu_cfg      => reu_cfg,
+  system_reu_wrap     => reu_wrap,
   system_reset        => system_reset,
   system_scanlines    => system_scanlines,
   system_volume       => system_volume,
@@ -1197,6 +1215,7 @@ hid_inst: entity work.hid
   system_midi         => st_midi,
   system_pause        => system_pause,
   system_vic_variant  => vic_variant, 
+  system_palette      => palette,
   system_cia_mode     => cia_mode,
   system_sid_ver      => sid_ver,
   system_sid_mode     => sid_mode,
@@ -1278,7 +1297,7 @@ fpga64_sid_iec_inst: entity work.fpga64_sid_iec
 
   -- external memory
   ramAddr      => c64_addr,
-  ramDin       => sdram_data,
+  ramDin       => c64_data_in,
   ramDout      => c64_data_out,
   ramCE        => ram_ce,
   ramWE        => ram_we,
@@ -1291,6 +1310,7 @@ fpga64_sid_iec_inst: entity work.fpga64_sid_iec
   turbo_speed  => turbo_speed,
 
   vic_variant  => vic_variant,
+  palette      => palette,
   ntscMode     => ntscMode,
   hsync        => hsync,
   vsync        => vsync,
@@ -1401,6 +1421,7 @@ port map(
     clk       => clk32,
     reset     => not reset_n,
     cfg       => std_logic_vector(unsigned'( '0' & reu_cfg) ),
+    wrap      => reu_wrap,
   
     dma_req   => dma_req,
     dma_cycle => dma_cycle,
@@ -1447,28 +1468,28 @@ port map(
     mspi_do   => mspi_do
 );
 
-cid <= cart_id when cart_attached = '1' else X"0099" when georam ='1' else X"00FF";
+cid <= cart_id when cart_attached = '1' else x"63" when georam = '1' else x"FF";
 
 cartridge_inst: entity work.cartridge
 port map
   (
-    clk32       => clk32,
-    reset_n     => reset_n,
+    clk32           => clk32,
+    reset_n         => reset_n,
   
     cart_loading    => ioctl_download and load_crt,
     cart_id         => cid,
     cart_exrom      => cart_exrom,
     cart_game       => cart_game,
-    cart_bank_laddr => cart_bank_laddr,
-    cart_bank_size  => cart_bank_size,
+    cart_bank_hi    => cart_bank_hi,
+    cart_bank_16k   => cart_bank_16k,
     cart_bank_num   => cart_bank_num,
-    cart_bank_type  => cart_bank_type,
-    cart_bank_raddr => ioctl_load_addr,
+    cart_bank_addr  => ioctl_load_addr(20 downto 13),
     cart_bank_wr    => cart_hdr_wr,
-  
+    cart_boot       => '0',
+
     exrom       => exrom,
     game        => game,
-  
+
     romL        => romL,
     romH        => romH,
     UMAXromH    => UMAXromH,
@@ -1478,12 +1499,17 @@ port map
     mem_ce      => ram_ce,
     mem_ce_out  => cart_ce,
     mem_write_out => cart_we,
+    mem_in      => std_logic_vector(sdram_data),
+    mem_out     => cart_wrdata,
+    mem_addr(22 downto 0) => cart_addr,
+    mem_req     => cart_mem_req,
+    mem_cycle   => io_cycle,
     IO_rom      => io_rom,
     IO_rd       => cart_oe,
     IO_data     => cart_data,
     addr_in     => c64_addr,
     data_in     => c64_data_out,
-    addr_out    => cart_addr,
+    data_out    => c64_data_in,
 
     freeze_key  => freeze_key,
     mod_key     => mod_key,
@@ -1615,10 +1641,10 @@ begin
           cart_hdr_cnt <= (others => '0');
         end if;
 
-        if(ioctl_addr = x"16") then cart_id(15 downto 8) <= ioctl_data; end if;
-        if(ioctl_addr = x"17") then cart_id(7 downto 0) <= ioctl_data; end if;
-        if(ioctl_addr = x"18") then cart_exrom <= ioctl_data; end if;
-        if(ioctl_addr = x"19") then cart_game <= ioctl_data; end if;
+        if(ioctl_addr = x"16") then cart_id_hi <= ioctl_data; end if;
+        if(ioctl_addr = x"17") then cart_id <= x"FF" when cart_id_hi /= x"00" else ioctl_data; end if;
+        if(ioctl_addr = x"18") then cart_exrom <= ioctl_data(0); end if;
+        if(ioctl_addr = x"19") then cart_game <= ioctl_data(0); end if;
 
         if(ioctl_addr >= x"40") then
           if cart_blk_len = 0 and cart_hdr_cnt = 0 then
@@ -1635,13 +1661,9 @@ begin
               if(cart_hdr_cnt = 6)  then cart_blk_len(15 downto 8)   <= ioctl_data; end if;
               if(cart_hdr_cnt = 7)  then cart_blk_len(7 downto 0)    <= ioctl_data; end if;
               if(cart_hdr_cnt = 8)  then cart_blk_len <= cart_blk_len - X"10"; end if;
-              if(cart_hdr_cnt = 9)  then cart_bank_type <= ioctl_data; end if;
-              if(cart_hdr_cnt = 10) then cart_bank_num(15 downto 8)  <= ioctl_data; end if;
-              if(cart_hdr_cnt = 11) then cart_bank_num(7 downto 0)   <= ioctl_data; end if;
-              if(cart_hdr_cnt = 12) then cart_bank_laddr(15 downto 8)<= ioctl_data; end if;
-              if(cart_hdr_cnt = 13) then cart_bank_laddr(7 downto 0) <= ioctl_data; end if;
-              if(cart_hdr_cnt = 14) then cart_bank_size(15 downto 8) <= ioctl_data; end if;
-              if(cart_hdr_cnt = 15) then cart_bank_size(7 downto 0)  <= ioctl_data; end if;
+              if(cart_hdr_cnt = 11) then cart_bank_num <= ioctl_data; end if;
+              if(cart_hdr_cnt = 12) then cart_bank_hi <= '1' when ioctl_data > x"80" else '0'; end if;
+              if(cart_hdr_cnt = 14) then cart_bank_16k <= '1' when ioctl_data > x"20" else '0'; end if;
               if(cart_hdr_cnt = 15) then cart_hdr_wr <= '1'; end if;
         else
               cart_blk_len <= cart_blk_len - 1;
