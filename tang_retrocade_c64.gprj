@@ -52,7 +52,7 @@
         <File path="src/c1541/via6522.vhd" type="file.vhdl" enable="1"/>
         <File path="src/c64_midi.vhd" type="file.vhdl" enable="1"/>
         <File path="src/cpu_6510.vhd" type="file.vhdl" enable="1"/>
-        <File path="src/fifo_sc_hs/fifo_sc_hs.vhd" type="file.vhdl" enable="1"/>
+        <File path="src/fifo_sc_hs/fifo_sc_hs_top.v" type="file.verilog" enable="1"/>
         <File path="src/fpga64_buslogic.vhd" type="file.vhdl" enable="1"/>
         <File path="src/fpga64_keyboard.vhd" type="file.vhdl" enable="1"/>
         <File path="src/fpga64_rgbcolor.vhd" type="file.vhdl" enable="1"/>
