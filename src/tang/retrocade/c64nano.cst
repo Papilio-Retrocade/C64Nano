@@ -1,0 +1,156 @@
+//Copyright (C)2014-2023 Gowin Semiconductor Corporation.
+//All rights reserved.
+//File Title: Physical Constraints file
+//Part Number: GW2A-LV18PG256C8/I7
+//Device: GW2A-18
+//Device Version: C
+//
+// Papilio Retrocade board constraints
+// Tang Primer 20K (GW2A-LV18PG256C8/I7, 256-pin BGA)
+// ESP32-S3 companion via SPI, MiSTer SDRAM (16-bit), 27 MHz clock
+
+// Main clock - 27 MHz
+IO_LOC "clk" H11;
+IO_PORT "clk" IO_TYPE=LVCMOS33 PULL_MODE=NONE BANK_VCCIO=3.3;
+
+// Buttons (leave commented - tie '0' internally if no physical buttons)
+//IO_LOC "reset" ;
+//IO_PORT "reset" IO_TYPE=LVCMOS33 PULL_MODE=DOWN BANK_VCCIO=3.3;
+//IO_LOC "user" ;
+//IO_PORT "user" IO_TYPE=LVCMOS33 PULL_MODE=DOWN BANK_VCCIO=3.3;
+
+//=========== HDMI ===============
+IO_LOC "tmds_d_p[0]" M6,T8;
+IO_PORT "tmds_d_p[0]" IO_TYPE=LVCMOS33D PULL_MODE=NONE DRIVE=4 BANK_VCCIO=3.3;
+IO_LOC "tmds_d_p[1]" T11,P11;
+IO_PORT "tmds_d_p[1]" IO_TYPE=LVCMOS33D PULL_MODE=NONE DRIVE=4 BANK_VCCIO=3.3;
+IO_LOC "tmds_d_p[2]" T12,R11;
+IO_PORT "tmds_d_p[2]" IO_TYPE=LVCMOS33D PULL_MODE=NONE DRIVE=4 BANK_VCCIO=3.3;
+IO_LOC "tmds_clk_p" P6,T6;
+IO_PORT "tmds_clk_p" IO_TYPE=LVCMOS33D PULL_MODE=NONE DRIVE=4 BANK_VCCIO=3.3;
+
+// WS2812 LED
+IO_LOC "ws2812" P9;
+IO_PORT "ws2812" PULL_MODE=DOWN IO_TYPE=LVCMOS33;
+
+// SPI FLASH (MSPI pins - must be enabled via use_mspi_as_gpio=1 in gprj)
+IO_LOC "mspi_clk" L10;
+IO_PORT "mspi_clk" IO_TYPE=LVCMOS33 PULL_MODE=NONE DRIVE=12 BANK_VCCIO=3.3;
+IO_LOC "mspi_cs" M9;
+IO_PORT "mspi_cs" IO_TYPE=LVCMOS33 PULL_MODE=UP DRIVE=12 BANK_VCCIO=3.3;
+IO_LOC "mspi_do" P10;
+IO_PORT "mspi_do" IO_TYPE=LVCMOS33 PULL_MODE=NONE BANK_VCCIO=3.3;
+IO_LOC "mspi_di" R10;
+IO_PORT "mspi_di" IO_TYPE=LVCMOS33 PULL_MODE=NONE DRIVE=12 BANK_VCCIO=3.3;
+//IO_LOC "mspi_wp" P12;
+//IO_PORT "mspi_wp" IO_TYPE=LVCMOS33 PULL_MODE=UP DRIVE=4 BANK_VCCIO=3.3;
+//IO_LOC "mspi_hold" F12;
+//IO_PORT "mspi_hold" IO_TYPE=LVCMOS33 PULL_MODE=UP DRIVE=4 BANK_VCCIO=3.3;
+
+// ESP32-S3 SuperMini SPI companion (pmod_companion_*)
+IO_LOC "pmod_companion_clk"  A11;
+IO_PORT "pmod_companion_clk"  IO_TYPE=LVCMOS33 PULL_MODE=UP BANK_VCCIO=3.3;
+IO_LOC "pmod_companion_ss"    A12;
+IO_PORT "pmod_companion_ss"   IO_TYPE=LVCMOS33 PULL_MODE=UP BANK_VCCIO=3.3;
+IO_LOC "pmod_companion_dout"  B11;
+IO_PORT "pmod_companion_dout" IO_TYPE=LVCMOS33 PULL_MODE=UP BANK_VCCIO=3.3;
+IO_LOC "pmod_companion_din"   J11;
+IO_PORT "pmod_companion_din"  IO_TYPE=LVCMOS33 PULL_MODE=UP DRIVE=8 BANK_VCCIO=3.3;
+IO_LOC "pmod_companion_intn"  C11;
+IO_PORT "pmod_companion_intn" IO_TYPE=LVCMOS33 PULL_MODE=UP DRIVE=8 BANK_VCCIO=3.3;
+
+// SDCARD
+IO_LOC "sd_dat[3]" N11;
+IO_PORT "sd_dat[3]" IO_TYPE=LVCMOS33 PULL_MODE=UP DRIVE=4 BANK_VCCIO=3.3;
+IO_LOC "sd_dat[2]" M10;
+IO_PORT "sd_dat[2]" IO_TYPE=LVCMOS33 PULL_MODE=UP DRIVE=4 BANK_VCCIO=3.3;
+IO_LOC "sd_dat[1]" M7;
+IO_PORT "sd_dat[1]" IO_TYPE=LVCMOS33 PULL_MODE=UP DRIVE=4 BANK_VCCIO=3.3;
+IO_LOC "sd_dat[0]" M8;
+IO_PORT "sd_dat[0]" IO_TYPE=LVCMOS33 PULL_MODE=UP DRIVE=4 BANK_VCCIO=3.3;
+IO_LOC "sd_cmd" R14;
+IO_PORT "sd_cmd" IO_TYPE=LVCMOS33 PULL_MODE=UP BANK_VCCIO=3.3;
+IO_LOC "sd_clk" N10;
+IO_PORT "sd_clk" IO_TYPE=LVCMOS33 PULL_MODE=UP DRIVE=4 BANK_VCCIO=3.3;
+
+// MiSTer SDRAM v3.0 (16-bit) on 40-pin port
+IO_LOC "IO_sdram_dq[0]" K13;
+IO_PORT "IO_sdram_dq[0]" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+IO_LOC "IO_sdram_dq[1]" K12;
+IO_PORT "IO_sdram_dq[1]" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+IO_LOC "IO_sdram_dq[2]" K11;
+IO_PORT "IO_sdram_dq[2]" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+IO_LOC "IO_sdram_dq[3]" L13;
+IO_PORT "IO_sdram_dq[3]" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+IO_LOC "IO_sdram_dq[4]" H15;
+IO_PORT "IO_sdram_dq[4]" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+IO_LOC "IO_sdram_dq[5]" G16;
+IO_PORT "IO_sdram_dq[5]" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+IO_LOC "IO_sdram_dq[6]" H14;
+IO_PORT "IO_sdram_dq[6]" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+IO_LOC "IO_sdram_dq[7]" H16;
+IO_PORT "IO_sdram_dq[7]" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+IO_LOC "IO_sdram_dq[8]" C12;
+IO_PORT "IO_sdram_dq[8]" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+IO_LOC "IO_sdram_dq[9]" B12;
+IO_PORT "IO_sdram_dq[9]" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+IO_LOC "IO_sdram_dq[10]" E16;
+IO_PORT "IO_sdram_dq[10]" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+IO_LOC "IO_sdram_dq[11]" F15;
+IO_PORT "IO_sdram_dq[11]" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+IO_LOC "IO_sdram_dq[12]" D16;
+IO_PORT "IO_sdram_dq[12]" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+IO_LOC "IO_sdram_dq[13]" E10;
+IO_PORT "IO_sdram_dq[13]" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+IO_LOC "IO_sdram_dq[14]" D10;
+IO_PORT "IO_sdram_dq[14]" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+IO_LOC "IO_sdram_dq[15]" D11;
+IO_PORT "IO_sdram_dq[15]" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+
+IO_LOC "O_sdram_addr[0]" N15;
+IO_PORT "O_sdram_addr[0]" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+IO_LOC "O_sdram_addr[1]" R16;
+IO_PORT "O_sdram_addr[1]" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+IO_LOC "O_sdram_addr[2]" P15;
+IO_PORT "O_sdram_addr[2]" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+IO_LOC "O_sdram_addr[3]" P16;
+IO_PORT "O_sdram_addr[3]" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+IO_LOC "O_sdram_addr[4]" H13;
+IO_PORT "O_sdram_addr[4]" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+IO_LOC "O_sdram_addr[5]" G14;
+IO_PORT "O_sdram_addr[5]" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+IO_LOC "O_sdram_addr[6]" G15;
+IO_PORT "O_sdram_addr[6]" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+IO_LOC "O_sdram_addr[7]" F14;
+IO_PORT "O_sdram_addr[7]" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+IO_LOC "O_sdram_addr[8]" F16;
+IO_PORT "O_sdram_addr[8]" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+IO_LOC "O_sdram_addr[9]" E15;
+IO_PORT "O_sdram_addr[9]" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+IO_LOC "O_sdram_addr[10]" N16;
+IO_PORT "O_sdram_addr[10]" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+IO_LOC "O_sdram_addr[11]" D14;
+IO_PORT "O_sdram_addr[11]" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+IO_LOC "O_sdram_addr[12]" A15;
+IO_PORT "O_sdram_addr[12]" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+
+IO_LOC "O_sdram_ba[0]" L16;
+IO_PORT "O_sdram_ba[0]" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+IO_LOC "O_sdram_ba[1]" N14;
+IO_PORT "O_sdram_ba[1]" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+
+IO_LOC "O_sdram_dqm[0]" J15;
+IO_PORT "O_sdram_dqm[0]" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+IO_LOC "O_sdram_dqm[1]" B13;
+IO_PORT "O_sdram_dqm[1]" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+
+IO_LOC "O_sdram_clk" A14;
+IO_PORT "O_sdram_clk" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+IO_LOC "O_sdram_wen_n" K16;
+IO_PORT "O_sdram_wen_n" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+IO_LOC "O_sdram_ras_n" K15;
+IO_PORT "O_sdram_ras_n" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+IO_LOC "O_sdram_cas_n" K14;
+IO_PORT "O_sdram_cas_n" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+IO_LOC "O_sdram_cs_n" L14;
+IO_PORT "O_sdram_cs_n" IO_TYPE=LVCMOS33 PULL_MODE=UP;
