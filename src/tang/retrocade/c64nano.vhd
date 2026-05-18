@@ -917,7 +917,7 @@ port map(
     CALIB  => '0'
 );
 
-div_inst: CLKDIV
+div2_inst: CLKDIV
 generic map(
   DIV_MODE => "2",
   GSREN    => "false"
