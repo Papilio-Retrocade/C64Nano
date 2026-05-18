@@ -52,9 +52,9 @@ IO_LOC "pmod_companion_clk"  A11;
 IO_PORT "pmod_companion_clk"  IO_TYPE=LVCMOS33 PULL_MODE=UP BANK_VCCIO=3.3;
 IO_LOC "pmod_companion_ss"    A12;
 IO_PORT "pmod_companion_ss"   IO_TYPE=LVCMOS33 PULL_MODE=UP BANK_VCCIO=3.3;
-IO_LOC "pmod_companion_dout"  B11;
-IO_PORT "pmod_companion_dout" IO_TYPE=LVCMOS33 PULL_MODE=UP BANK_VCCIO=3.3;
-IO_LOC "pmod_companion_din"   J11;
+IO_LOC "pmod_companion_dout"  J11;  // MISO: FPGA output to ESP32 GPIO3
+IO_PORT "pmod_companion_dout" IO_TYPE=LVCMOS33 PULL_MODE=UP DRIVE=8 BANK_VCCIO=3.3;
+IO_LOC "pmod_companion_din"   B11;  // MOSI: FPGA input from ESP32 GPIO11
 IO_PORT "pmod_companion_din"  IO_TYPE=LVCMOS33 PULL_MODE=UP BANK_VCCIO=3.3;
 IO_LOC "pmod_companion_intn"  C11;
 IO_PORT "pmod_companion_intn" IO_TYPE=LVCMOS33 PULL_MODE=UP DRIVE=8 BANK_VCCIO=3.3;
