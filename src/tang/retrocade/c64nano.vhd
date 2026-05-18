@@ -220,7 +220,7 @@ signal system_screen  : std_logic_vector(1 downto 0);
 signal system_floppy_wprot : std_logic_vector(1 downto 0);
 signal leds           : std_logic_vector(5 downto 0);
 signal led1541        : std_logic;
-signal reu_cfg        : std_logic; 
+signal reu_cfg        : std_logic_vector(1 downto 0);
 signal reu_wrap       : std_logic;
 signal dma_req        : std_logic;
 signal dma_cycle      : std_logic;
@@ -1413,14 +1413,14 @@ begin
   end if;
 end process;
 
-reu_oe  <= IOF and reu_cfg;
+reu_oe  <= '1' when IOF = '1' and reu_cfg /= 0 else '0';
 reu_ram_ce <= not ext_cycle_d and ext_cycle and dma_req;
 
 reu_inst: entity work.reu
 port map(
     clk       => clk32,
     reset     => not reset_n,
-    cfg       => std_logic_vector(unsigned'( '0' & reu_cfg) ),
+    cfg       => reu_cfg,
     wrap      => reu_wrap,
   
     dma_req   => dma_req,
