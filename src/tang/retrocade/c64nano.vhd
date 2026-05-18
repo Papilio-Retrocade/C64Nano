@@ -694,11 +694,11 @@ generic map (
     -- output file/image information. Image size is e.g. used by fdc to 
     -- translate between sector/track/side and lba sector
     image_size(31 downto 0) => sd_img_size,           -- length of image file
-    image_mounted(5 downto 0)=> sd_img_mounted,
+    image_mounted(6 downto 0)=> sd_img_mounted,
 
     -- user read sector command interface (sync with clk)
-    rstart          => "00" & sd_rd,
-    wstart          => "00" & sd_wr, 
+    rstart          => "0" & sd_rd,
+    wstart          => "0" & sd_wr, 
     rsector         => sd_lba,
     rbusy           => sd_busy,
     rdone           => sd_done,           --  done from sd reader acknowledges/clears start
@@ -1552,8 +1552,8 @@ port map (
   reset             => por,
 
   sd_lba            => loader_lba,
-  sd_rd             => sd_rd(5 downto 1),
-  sd_wr             => sd_wr(5 downto 1),
+  sd_rd             => sd_rd(6 downto 1),
+  sd_wr             => sd_wr(6 downto 1),
   sd_busy           => sd_busy,
   sd_done           => sd_done,
 
