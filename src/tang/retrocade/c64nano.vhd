@@ -216,6 +216,7 @@ signal disk_g64       : std_logic;
 signal disk_g64_d     : std_logic;
 signal c1541_reset    : std_logic;
 signal c1541_osd_reset : std_logic;
+signal int_iec_drv     : std_logic_vector(1 downto 0);
 signal system_screen  : std_logic_vector(1 downto 0);
 signal system_floppy_wprot : std_logic_vector(1 downto 0);
 signal leds           : std_logic_vector(5 downto 0);
@@ -469,9 +470,9 @@ signal state            : pll_state_t := FSM_RESET;
 
 -- 64k core ram                      0x000000
 -- cartridge RAM banks are mapped to 0x010000
--- cartridge ROM banks are mapped to 0x100000
-constant CRT_MEM_START : std_logic_vector(22 downto 0) := 23x"100000";
-constant TAP_ADDR      : std_logic_vector(22 downto 0) := 23x"200000";
+-- cartridge ROM banks are mapped to 0x200000 (get_bank() adds MSB=1, so bank 0 maps to 0x200000)
+constant CRT_MEM_START : std_logic_vector(22 downto 0) := 23x"200000";
+constant TAP_ADDR      : std_logic_vector(22 downto 0) := 23x"600000";
 constant REU_ADDR      : std_logic_vector(22 downto 0) := 23x"400000";
 
 component CLKDIV
@@ -625,6 +626,7 @@ port map
     reset         => disk_reset,
     pause         => loader_busy,
     ce            => '0',
+    ds            => int_iec_drv,
 
     disk_num      => (others =>'0'),
     disk_change   => sd_change, 
@@ -1208,6 +1210,7 @@ hid_inst: entity work.hid
   system_port_2       => port_2_sel,
   system_dos_sel      => dos_sel,
   system_1541_reset   => c1541_osd_reset,
+  system_int_iec_drv  => int_iec_drv,
   system_sid_digifix  => sid_digifix,
   system_turbo_mode   => turbo_mode,
   system_turbo_speed  => turbo_speed,
@@ -1454,7 +1457,7 @@ port map(
 -- offset in spi flash TN20K, TP25K $200000, TM138K $A00000
 flash_inst: entity work.flash 
 port map(
-    clk       => clk64,
+    clk       => flash_clk,
     resetn    => flash_lock,
     ready     => flash_ready,
     busy      => open,
