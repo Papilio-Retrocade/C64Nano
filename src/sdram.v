@@ -47,7 +47,7 @@ module sdram (
 	input 		 		we          // cpu/chipset requests write
 );
 
-assign sd_clk = ~clk;
+assign sd_clk = ~clk;   // inverted: SDRAM samples cmd/addr mid-cycle for setup/hold margin
 localparam RASCAS_DELAY   = 3'd2;   // tRCD>=20ns -> 2 cycles@64MHz
 localparam BURST_LENGTH   = 3'b000; // 000=none, 001=2, 010=4, 011=8
 localparam ACCESS_TYPE    = 1'b0;   // 0=sequential, 1=interleaved

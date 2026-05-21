@@ -219,7 +219,7 @@ always @(posedge clk) begin
             // on e.g. an unprogrammed device
                 if(state == 4'd0) data_out <= 8'h5c;
                 if(state == 4'd1) data_out <= 8'h42;
-                if(state == 4'd2) data_out <= 8'h00;   // old: core id 2 = C64
+                if(state == 4'd2) data_out <= 8'h02;   // core id 2 = C64
             end
 
             // CMD 1: there are two MCU controlled LEDs

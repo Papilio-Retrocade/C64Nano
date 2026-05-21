@@ -82,13 +82,13 @@ begin
     rpll_inst: rPLL
         generic map (
             FCLKIN => "27",
-            DEVICE => "GW2AR-18C",
+            DEVICE => "GW2A-18C",
             DYN_IDIV_SEL => "false",
-            IDIV_SEL => 7,
+            IDIV_SEL => 6,
             DYN_FBDIV_SEL => "false",
-            FBDIV_SEL => 18,
+            FBDIV_SEL => 1,
             DYN_ODIV_SEL => "false",
-            ODIV_SEL => 8,
+            ODIV_SEL => 80,
             PSDA_SEL => "1000",
             DYN_DA_EN => "false",
             DUTYDA_SEL => "1000",
