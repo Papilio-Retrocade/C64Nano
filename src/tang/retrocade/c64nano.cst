@@ -152,5 +152,5 @@ IO_LOC "O_sdram_ras_n" K15;
 IO_PORT "O_sdram_ras_n" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
 IO_LOC "O_sdram_cas_n" K14;
 IO_PORT "O_sdram_cas_n" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
-IO_LOC "O_sdram_cs_n" L14;
+IO_LOC "O_sdram_cs_n" T9;
 IO_PORT "O_sdram_cs_n" IO_TYPE=LVCMOS33 PULL_MODE=UP;
