@@ -107,6 +107,8 @@ reg [31:0] core_sector;  // sector requested by core
 
 wire	   busy_int;   // the internal/original busy signal as coming from the sd_rw
 wire	   done_int;   //                   -"- done -"-
+wire	   wr_error;   // set by sd_rw when the last MCU/core write was rejected by the card
+reg	   last_write_error;  // sticky, latched for the MCU to read back via CMD5
 
 // The internal busy and done are only exposed to the core if a core transfer is being
 // handled. This will prevent the core from seeing external MCU transfers and assuming
@@ -227,6 +229,7 @@ always @(posedge clk) begin
 	  // no MCU or core request by now
 	  mcu_request <= MCU_REQ_IDLE;	  
 	  core_request <= CORE_REQ_IDLE;	  
+	  last_write_error <= 1'b0;
    end else begin
       image_mounted <= 8'b00000000;
 
@@ -299,6 +302,7 @@ always @(posedge clk) begin
 		 
 		 else if(mcu_request == MCU_WRITING) begin
 			$display("sd_card.v: MCU SD write done");
+			last_write_error <= wr_error;
 			mcu_request <= MCU_REQ_IDLE;
 		 end
 
@@ -426,7 +430,7 @@ always @(posedge clk) begin
 				  if(image_target <= 8'd7) begin  // images 0..7 are supported
 					 $display("sd_card.v: MCU inserted image %0d with %0d bytes", image_target, { image_size[63:8], data_in } );
 					 direct_start[image_target] <= 32'd0;
-					 image_mounted[image_target] <= 1'b1;
+						 image_mounted[image_target] <= 1'b1;
 				  end
 			   end
 			end
@@ -442,10 +446,12 @@ always @(posedge clk) begin
 				  $display("sd_card.v: MCU write request sector %0d/%8x", {mcu_sector[31:8], data_in}, {mcu_sector[31:8], data_in});
 				  mcu_request <= MCU_REQ_WRITE;				  
 				  mcu_tx_cnt <= 9'd0;
+				  last_write_error <= 1'b0;    // clear stale error before starting new write
                end
 			   
-			   // send "busy" while transfer is still in progress
-			   data_out <= (mcu_request != MCU_REQ_IDLE)?8'h01:8'h00; 
+			   // send "busy" while transfer is still in progress, otherwise
+			   // report whether the previous write was accepted by the card
+			   data_out <= (mcu_request != MCU_REQ_IDLE)?8'h01:(last_write_error?8'h02:8'h00); 
 
 			   // data transfer into local buffer
 			   if(mcu_request == MCU_REQ_WRITE) begin
@@ -521,6 +527,7 @@ sd_rw #(.CLK_DIV(CLK_DIV), .SIMULATE(SIMULATE)) sd_rw (
    .sector( lsector ),
    .rbusy( busy_int ),
    .rdone( done_int ),
+   .wrerr( wr_error ),
 
    // data to be written to SD card either comes from local MCU buffer or from core
    .inbyte((core_request == CORE_WRITING)?inbyte:inbyte_int),

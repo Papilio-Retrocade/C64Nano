@@ -35,6 +35,7 @@ module sd_rw # (
     input wire [31:0]  sector,
     output wire	       rbusy,
     output wire	       rdone,
+    output reg	       wrerr,    // set once rdone fires if the last write was rejected/failed
     // sector data output interface (sync with clk)
     output reg	       outen,    // when outen=1, a byte of sector content is read out from outbyte
     output reg [ 8:0]  outaddr,  // outaddr from 0 to 511, because the sector size is 512
@@ -120,7 +121,7 @@ reg [3:0] wack;
    
    
 assign     rbusy  = (sdcmd_stat != READY) ;
-assign     rdone  = ((sdcmd_stat == READING) || (sdcmd_stat == WRITING)) && (sddat_stat==DONE);
+assign     rdone  = ((sdcmd_stat == READING) || (sdcmd_stat == WRITING)) && ((sddat_stat==DONE) || (sddat_stat==WERR));
 
 assign card_stat = sdcmd_stat;
 
@@ -274,6 +275,7 @@ always @ (posedge clk or negedge rstn)
         ridx    <= 0;
         sddatoe <= 0;
         sddatout <= 4'd15;       
+        wrerr   <= 1'b0;
     end else begin
         outen   <= 1'b0;
         if(sdcmd_stat!=WRITING && sdcmd_stat!=CMD17 && sdcmd_stat!=READING ) begin
@@ -292,6 +294,7 @@ always @ (posedge clk or negedge rstn)
                            for(i=0;i<4;i=i+1) data_crc[i] <= 16'h0000;
                            ridx   <= 0;
                            outaddr<= 0;
+			   wrerr  <= 1'b0;    // clear stale error before starting new write
 			   
 		           { sddatoe, sddatout } <= 5'b10000;      // drive data output and send start bit 
 			end
@@ -365,18 +368,24 @@ always @ (posedge clk or negedge rstn)
                       ridx   <= 0; 
 		   end else if(ridx > 10000000) begin
 		      sddat_stat <= WERR;   // write timeout
-		      ridx   <= 0; 
+		      wrerr      <= 1'b1;
+                      ridx   <= 0; 
 		   end else begin
                       ridx   <= ridx + 1;
 		   end
 		end
 	      
-	        // read ack on rising sd clock edge
+	        // read ack on rising sd clock edge (data response token: start
+	        // bit consumed in WWAITACK, then 3 status bits + end bit here)
 	        WACK : if(ena_p) begin
                     wack[ridx[1:0]] <= sddatin[0];
                     if(ridx >= 4-1) begin
                         sddat_stat <= WWAIT;
                         ridx   <= 0; 
+			// status code must be 3'b010 (accepted); anything else
+			// (e.g. 101=CRC error, 110=write error) means the card
+			// rejected the block and the write must not be trusted
+			wrerr  <= ({wack[0],wack[1],wack[2]} != 3'b010);
                     end else begin
                         ridx   <= ridx + 1;
                     end
@@ -384,20 +393,19 @@ always @ (posedge clk or negedge rstn)
 
 	        // wait for not busy on rising sd clock edge
 	        WWAIT : if(ena_p) begin
-		   // TODO: This is the place to check wack
-		   
 		   // wait for not being busy anymore
 		   if(sddatin[0] == 1) begin
 		      sddat_stat <= RTAIL;
                       ridx   <= 0; 
 		   end else if(ridx > 1000000) begin
 		      sddat_stat <= WERR;   // busy timeout
-		      ridx   <= 0; 
+		      wrerr      <= 1'b1;
+                      ridx   <= 0; 
 		   end else begin
                       ridx   <= ridx + 1;
 		   end
 		end 
-
+	      
 	        // read the payload itself on rising sd clock edge
                 RDATA : if(ena_p) begin
 		    if(ridx[0]) outbyte[3:0] <= sddatin;
